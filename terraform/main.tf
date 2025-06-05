@@ -6,28 +6,10 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Generate SSH key pair
-resource "tls_private_key" "demo_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-# Store private key in SSM Parameter Store
-resource "aws_ssm_parameter" "private_key" {
-  name        = "/ssh/demo-keypair/private"
-  description = "Private SSH key for EC2 demo"
-  type        = "SecureString"
-  value       = tls_private_key.demo_key.private_key_pem
-
-  tags = {
-    environment = "demo"
-  }
-}
-
-# Create AWS key pair using the public key
+# Use existing AWS key pair
 resource "aws_key_pair" "demo_keypair" {
-  key_name   = "demo-keypair"
-  public_key = tls_private_key.demo_key.public_key_openssh
+  key_name   = "keypair"  # Le nom de ta clé dans AWS
+  public_key = file("${path.module}/../keypair.pub")  # On va créer ce fichier
 }
 
 # Create VPC
@@ -121,7 +103,7 @@ resource "aws_instance" "demo_instance" {
   ami                    = "ami-0779caf41f9ba54f0" // Replace with a valid AMI ID for your region
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.demo_subnet.id
-  key_name               = aws_key_pair.demo_keypair.key_name
+  key_name = "keypair"  # Le nom de ta clé existante
   vpc_security_group_ids = [aws_security_group.demo_sg.id]
 
   user_data = <<-EOF
