@@ -6,12 +6,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Use existing AWS key pair
-resource "aws_key_pair" "demo_keypair" {
-  key_name   = "keypair"  # Le nom de ta clé dans AWS
-  public_key = file("${path.module}/../keypair.pub")  # On va créer ce fichier
-}
-
 # Create VPC
 resource "aws_vpc" "demo_vpc" {
   cidr_block           = "10.0.0.0/16"
@@ -103,7 +97,7 @@ resource "aws_instance" "demo_instance" {
   ami                    = "ami-0779caf41f9ba54f0" // Replace with a valid AMI ID for your region
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.demo_subnet.id
-  key_name = "keypair"  # Le nom de ta clé existante
+  key_name = "keypair"
   vpc_security_group_ids = [aws_security_group.demo_sg.id]
 
   user_data = <<-EOF
